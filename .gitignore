@@ -1,0 +1,7 @@
+build/
+goldendash.keystore
+.keystore-pass
+.DS_Store
+# Wallpaper tema Gelap pribadi (tidak dibagikan); tanpa file ini tema Gelap memakai latar lipatan bawaan
+res/drawable-nodpi/wall_dark.jpg
+*.apk
