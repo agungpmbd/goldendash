@@ -42,12 +42,15 @@ final class Sidebar extends FrameLayout {
     };
     private final Apps.Listener appsListener = this::loadApps;
 
-    Sidebar(Context c, final Nav nav) {
+    Sidebar(Context c, final Nav nav, boolean right) {
         super(c);
-        setBackground(new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[] {Ui.SIDE_A, Ui.SIDE_B}));
+        // Sisi yang menempel ke tepi layar lebih pekat; garis tipis di sisi yang menghadap isi.
+        setBackground(new GradientDrawable(right ? GradientDrawable.Orientation.RIGHT_LEFT : GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[] {Ui.SIDE_A, Ui.SIDE_B}));
         View edge = new View(c);
         edge.setBackgroundColor(Ui.STROKE);
-        addView(edge, new LayoutParams(Math.max(1, Ui.px(1.5f)), ViewGroup.LayoutParams.MATCH_PARENT, Gravity.END));
+        addView(edge, new LayoutParams(Math.max(1, Ui.px(1.5f)), ViewGroup.LayoutParams.MATCH_PARENT,
+                right ? Gravity.START : Gravity.END));
 
         clock = Ui.add(this, Ui.text(c, 30, Ui.medium, Ui.TEXT), 0, 22, 108, 38);
         clock.setGravity(Gravity.CENTER_HORIZONTAL);

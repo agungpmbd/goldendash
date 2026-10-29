@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
@@ -15,8 +16,10 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -85,37 +88,141 @@ final class SliderCard extends FrameLayout {
         super.onDetachedFromWindow();
     }
 
+    /** Volume asli di headunit NWD: nilai knob yang disimpan MCU (aplikasi biasa hanya bisa membacanya). */
+    static final String MCU_VOLUME = "mcu_system_volume";
+    /** Cara mengubah volume MCU: belum diketahui, tombol volume lewat AudioManager, atau adjustStreamVolume. */
+    static final int VIA_UNKNOWN = 0, VIA_KEY = 1, VIA_ADJUST = 2;
+
+    /**
+     * Volume. Di Android biasa: volume media (STREAM_MUSIC) diatur langsung. Di headunit NWD volume Android dikunci di
+     * maksimum dan volume asli ada di MCU ({@link #MCU_VOLUME}), jadi slider meniru knob: naik/turun selangkah demi
+     * selangkah sampai mencapai nilai tujuan. Dua cara dicoba (tombol volume, lalu adjustStreamVolume); cara yang
+     * terbukti mengubah volume MCU diingat. Batas atas MCU dipelajari saat volume berhenti naik.
+     */
     static SliderCard volume(final Context c) {
         final AudioManager am = (AudioManager) c.getSystemService(Context.AUDIO_SERVICE);
+        final ContentResolver cr = c.getContentResolver();
+        final SharedPreferences prefs = c.getSharedPreferences("volume", Context.MODE_PRIVATE);
+        final Handler h = new Handler(Looper.getMainLooper());
         final int st = AudioManager.STREAM_MUSIC;
         return new SliderCard(c, R.drawable.ic_volume, "Volume", new Source() {
             private BroadcastReceiver rx;
+            private ContentObserver obs;
+            private Runnable onChange;
+            private int target = -1, before, sentVia, tryVia = VIA_KEY;
+            private boolean waiting, warned;
+
+            private final Runnable step = this::step;
+
+            private int mcu() {
+                return Settings.System.getInt(cr, MCU_VOLUME, -1);
+            }
+
+            private int mcuMax() {
+                return Math.max(prefs.getInt("max", 40), Math.max(1, mcu()));
+            }
 
             @Override public float get() {
+                int v = mcu();
+                if (v >= 0) return v / (float) mcuMax();
                 int max = am.getStreamMaxVolume(st);
                 return max <= 0 ? 0 : am.getStreamVolume(st) / (float) max;
             }
 
             @Override public void set(float v) {
-                int idx = Math.round(v * am.getStreamMaxVolume(st));
-                if (idx != am.getStreamVolume(st)) am.setStreamVolume(st, idx, 0);
+                if (mcu() < 0) {
+                    int idx = Math.round(v * am.getStreamMaxVolume(st));
+                    if (idx != am.getStreamVolume(st)) am.setStreamVolume(st, idx, 0);
+                    return;
+                }
+                target = Math.round(v * mcuMax());
+                if (!waiting) {
+                    h.removeCallbacks(step);
+                    h.post(step);
+                }
+            }
+
+            /** Satu langkah: periksa hasil langkah sebelumnya, lalu kirim langkah berikutnya menuju {@link #target}. */
+            private void step() {
+                int cur = mcu();
+                int via = prefs.getInt("via", VIA_UNKNOWN);
+                if (waiting) {
+                    waiting = false;
+                    if (cur != before) {
+                        if (via == VIA_UNKNOWN) prefs.edit().putInt("via", sentVia).apply();
+                    } else if (via == VIA_UNKNOWN && sentVia == VIA_KEY) {
+                        tryVia = VIA_ADJUST;
+                    } else if (via == VIA_UNKNOWN) {
+                        target = -1;
+                        tryVia = VIA_KEY;
+                        warn();
+                        // Kembalikan slider ke volume sebenarnya.
+                        if (onChange != null) onChange.run();
+                        return;
+                    } else {
+                        // Cara sudah diketahui tapi volume tidak bergerak: sudah di batas.
+                        if (target > cur && cur >= 10) prefs.edit().putInt("max", cur).apply();
+                        target = -1;
+                        return;
+                    }
+                }
+                if (target < 0 || cur < 0 || cur == target) {
+                    target = -1;
+                    return;
+                }
+                boolean up = target > cur;
+                sentVia = via != VIA_UNKNOWN ? via : tryVia;
+                before = cur;
+                if (sentVia == VIA_KEY) {
+                    int code = up ? KeyEvent.KEYCODE_VOLUME_UP : KeyEvent.KEYCODE_VOLUME_DOWN;
+                    long now = SystemClock.uptimeMillis();
+                    am.dispatchMediaKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN, code, 0));
+                    am.dispatchMediaKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_UP, code, 0));
+                } else {
+                    am.adjustStreamVolume(st, up ? AudioManager.ADJUST_RAISE : AudioManager.ADJUST_LOWER, 0);
+                }
+                waiting = true;
+                // MCU butuh sesaat untuk memperbarui nilainya; tunggu sebelum memeriksa hasil.
+                h.postDelayed(step, 250);
+            }
+
+            private void warn() {
+                if (warned) return;
+                warned = true;
+                Toast.makeText(c, "Volume headunit ini belum bisa diatur dari GoldenDash. Pakai knob atau tombol setir.",
+                        Toast.LENGTH_LONG).show();
             }
 
             @Override public void release() { }
 
             @Override public void watch(final Runnable changed) {
+                onChange = changed;
                 rx = new BroadcastReceiver() {
                     @Override public void onReceive(Context ctx, Intent i) {
                         changed.run();
                     }
                 };
                 // Siaran tersembunyi tapi dipakai luas; dikirim tiap volume berubah, termasuk dari tombol setir.
-                c.registerReceiver(rx, new IntentFilter("android.media.VOLUME_CHANGED_ACTION"));
+                IntentFilter f = new IntentFilter("android.media.VOLUME_CHANGED_ACTION");
+                f.addAction("com.nwd.action.VOLUME_CHANGED");
+                c.registerReceiver(rx, f);
+                // Knob NWD: nilai MCU berubah tanpa siaran volume Android.
+                obs = new ContentObserver(h) {
+                    @Override public void onChange(boolean self) {
+                        changed.run();
+                    }
+                };
+                cr.registerContentObserver(Settings.System.getUriFor(MCU_VOLUME), false, obs);
             }
 
             @Override public void unwatch() {
                 if (rx != null) c.unregisterReceiver(rx);
+                if (obs != null) cr.unregisterContentObserver(obs);
                 rx = null;
+                obs = null;
+                h.removeCallbacks(step);
+                waiting = false;
+                target = -1;
             }
         });
     }

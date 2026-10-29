@@ -19,6 +19,7 @@ import android.widget.FrameLayout;
  */
 public final class HomeActivity extends Activity implements Sidebar.Nav {
     static final int REQ_LOC = 1;
+    private static final float SIDE_SHIFT = 104;
 
     private FrameLayout root, stage;
     private SilkBackground backdrop;
@@ -98,11 +99,31 @@ public final class HomeActivity extends Activity implements Sidebar.Nav {
         if (stage != null) root.removeView(stage);
         stage = new FrameLayout(this);
         root.addView(stage, new FrameLayout.LayoutParams(Ui.px(Ui.W), Ui.px(Ui.H), Gravity.CENTER));
-        home = Ui.add(stage, new HomeScreen(this), 0, 0, Ui.W, Ui.H);
-        apps = Ui.add(stage, new AppsScreen(this, this), 0, 0, Ui.W, Ui.H);
-        settings = Ui.add(stage, new SettingsScreen(this), 0, 0, Ui.W, Ui.H);
-        sidebar = Ui.add(stage, new Sidebar(this, this), 0, 0, 108, Ui.H);
+        // Layar ditata untuk sidebar di kiri (isi mulai x=128). Sidebar di kanan: geser isi ke kiri sejauh 104
+        // (isi jadi 24..1152) dan taruh sidebar di 1172..1280, jarak tepi dan celahnya tetap sama.
+        boolean right = Ui.sidebarRight(this);
+        float off = right ? -SIDE_SHIFT : 0;
+        home = Ui.add(stage, new HomeScreen(this), off, 0, Ui.W, Ui.H);
+        apps = Ui.add(stage, new AppsScreen(this, this), off, 0, Ui.W, Ui.H);
+        settings = Ui.add(stage, new SettingsScreen(this), off, 0, Ui.W, Ui.H);
+        sidebar = Ui.add(stage, new Sidebar(this, this, right), right ? Ui.W - 108 : 0, 0, 108, Ui.H);
         go(screen);
+    }
+
+    /** Pilihan posisi menu dari Pengaturan. */
+    void changeSidebar(boolean right) {
+        if (right == Ui.sidebarRight(this)) return;
+        Ui.setSidebarRight(this, right);
+        builtW = builtH = 0;
+        build(root.getWidth(), root.getHeight());
+    }
+
+    /** Pilihan tampilkan/sembunyikan speedometer dari Pengaturan. */
+    void changeSpeed(boolean show) {
+        if (show == Ui.showSpeed(this)) return;
+        Ui.setShowSpeed(this, show);
+        builtW = builtH = 0;
+        build(root.getWidth(), root.getHeight());
     }
 
     @Override public void go(int s) {

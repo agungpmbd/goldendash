@@ -121,6 +121,24 @@ final class Ui {
         c.getSharedPreferences("ui", Context.MODE_PRIVATE).edit().putString("theme", t).apply();
     }
 
+    /** Sidebar di kanan layar (untuk mobil yang headunit-nya lebih dekat ke tangan kanan pengemudi). */
+    static boolean sidebarRight(Context c) {
+        return c.getSharedPreferences("ui", Context.MODE_PRIVATE).getBoolean("sidebarRight", false);
+    }
+
+    static void setSidebarRight(Context c, boolean right) {
+        c.getSharedPreferences("ui", Context.MODE_PRIVATE).edit().putBoolean("sidebarRight", right).apply();
+    }
+
+    /** Speedometer di kartu kanan atas; bila disembunyikan, peta melebar memenuhi kartu. */
+    static boolean showSpeed(Context c) {
+        return c.getSharedPreferences("ui", Context.MODE_PRIVATE).getBoolean("showSpeed", true);
+    }
+
+    static void setShowSpeed(Context c, boolean show) {
+        c.getSharedPreferences("ui", Context.MODE_PRIVATE).edit().putBoolean("showSpeed", show).apply();
+    }
+
     /** Tema yang seharusnya aktif sekarang; Otomatis = gelap pukul 18.00–06.00. */
     static boolean wantDark(Context c) {
         String t = themePref(c);

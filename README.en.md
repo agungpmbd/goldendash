@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/Android-7%2B-3DDC84?logo=android&logoColor=white" alt="Android 7+">
   <img src="https://img.shields.io/badge/screen-1280%C3%97720-lightgrey" alt="Screen 1280x720">
   <br>
-  <img src="https://img.shields.io/badge/APK-~80%20KB-D9B67A" alt="APK about 80 KB">
+  <img src="https://img.shields.io/badge/APK-~90%20KB-D9B67A" alt="APK about 80 KB">
   <img src="https://img.shields.io/badge/no%20libraries-plain%20Java-D9B67A" alt="Plain Java, no libraries">
   <img src="https://img.shields.io/badge/theme-Light%20%7C%20Dark%20%7C%20Auto-7076F0" alt="Light, Dark, Auto themes">
 </p>
@@ -38,7 +38,7 @@ Many stock headunit launchers are heavy, rigid and can't be customised. GoldenDa
 screen that shows what you need while driving: time, weather, speed, the next turn, music, volume and brightness.
 Everything is reachable with a thumb, without opening other apps.
 
-Written in plain Java with no libraries and no Gradle; the APK is about 80 KB. The background is drawn once, GPS
+Written in plain Java with no libraries and no Gradle; the APK is about 90 KB. The background is drawn once, GPS
 only runs while the home screen is visible, and song progress only updates while its card is on screen, so idle CPU
 stays low. The interface is in Indonesian.
 
@@ -47,14 +47,19 @@ stays low. The interface is in Indonesian.
 - **Home:** large clock and date, plus weather and city name from GPS ([Open-Meteo](https://open-meteo.com), free,
   no API key).
 - **Speedometer:** GPS speed on a 0–140 km/h ring. It drops to 0 on its own when the GPS signal is lost (tunnels,
-  basements).
-- **Navigation:** distance and turn instructions are read from the navigation notification of **Google Maps**,
-  **Waze**, Sygic or OsmAnd. Tap the panel to return to the navigation app. The map behind it is decorative.
+  basements). It can be hidden (**⚙ Pengaturan › Speedometer**); the map then fills the whole card.
+- **Navigation:** a live [OpenStreetMap](https://www.openstreetmap.org) map at your GPS position, with a car marker
+  that follows your heading (a dark version for the Dark theme). Distance and turn instructions are read from the
+  navigation notification of **Google Maps**, **Waze**, Sygic or OsmAnd and shown over the map. Tap the panel to
+  return to the navigation app. The Google Maps route line can't be shown: Android doesn't let a regular launcher
+  display another app's screen.
 - **3×2 shortcuts:** filled automatically (Maps, Spotify, Phone, Radio, Bluetooth, Settings). Tap ✏️ or long-press
   an icon to change it.
 - **Player card:** album art, title, artist, progress and previous/play/next for any music app (Spotify, YouTube
   Music, JOOX, radio, ...). A ♡ button appears when the app provides one.
-- **Volume and Brightness sliders:** they follow changes made with steering-wheel buttons or by the system.
+- **Volume and Brightness sliders:** they follow changes from the knob, steering-wheel buttons or the system. On NWD
+  headunits the real volume is set by the MCU, so the slider steps the volume up/down like the knob does.
+- **Menu position:** the menu bar on the left or right of the screen (**⚙ Pengaturan › Posisi menu**).
 - **All Apps:** search, All/Navigation/Media/System tabs, and a 6×2 grid you swipe page by page.
   - Long-press an icon to add it to the shortcuts, open its app info, or hide it.
   - **Atur** (Arrange) sorts A–Z or by most opened, and brings hidden apps back.
@@ -113,7 +118,8 @@ from a 1280×720 design, so other landscape screens stay proportional.
 | Device | Screen | Android | Status |
 |---|---|---|---|
 | Android 10 emulator | 1280×720 | 10 | ✅ tested: all screens, both themes, GPS, weather, sliders |
-| NWD K2401 (Allwinner sun50iw10) | 1280×720 | 10 | ⚠️ main target, not yet tested on real hardware |
+| Audioteq AQ-A9 (NWD K2401, Allwinner sun50iw10) | 1280×720 | 10 | ✅ main target: home, player, turn hints, brightness tested; MCU volume (0.2.0) not yet tested |
+| Peerless AI Box (Cello Audio) | car screen | – | ✅ reported working by a user |
 | Other Android headunits (FYT, MTK, Rockchip, …) | 1280×720 | 7+ | ⚠️ should work; NWD-specific property doesn't apply |
 | Other landscape screens | 800×480 and up | 7+ | ⚠️ scaled proportionally, not tested |
 
@@ -145,7 +151,8 @@ adb uninstall com.goldendash.launcher
 ## Privacy
 
 - **No account, no ads, no analytics.** There is no GoldenDash server.
-- **Location** is used on the device for the speedometer. For weather, coordinates (4 decimals) are sent to
+- **Location** is used on the device for the speedometer. The map downloads 256 px tiles from the OpenStreetMap tile
+  server for the area around the car (±15–30 KB per tile, cached for 7 days). For weather, coordinates (4 decimals) are sent to
   [Open-Meteo](https://open-meteo.com) at most every 30 minutes, and the city name is looked up with Android's
   built-in Geocoder.
 - **Notification access** is only used to read media sessions (title, artist, artwork) and the navigation
@@ -193,6 +200,7 @@ belong to their owners.
 - [KlikDash](https://github.com/ashafizullah/klikdash) (MIT): inspiration for the lightweight, Gradle-free launcher
   approach for NWD headunits, the build script, and the ISRG root certificates for Android 7.0.
 - [Material Icons](https://fonts.google.com/icons) by Google (Apache 2.0) for the interface icons.
+- [OpenStreetMap](https://www.openstreetmap.org/copyright) (data © OpenStreetMap contributors, ODbL) for the map.
 - [Open-Meteo](https://open-meteo.com) (CC BY 4.0) for weather data.
 
 ## License

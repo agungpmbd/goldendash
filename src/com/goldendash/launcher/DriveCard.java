@@ -15,8 +15,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * Kartu kanan atas: speedometer GPS dan panel navigasi. Petunjuk belokan diambil dari notifikasi navigasi
- * Google Maps/Waze; peta di belakangnya hanya hiasan (peta asli butuh SDK/API berbayar). Ketuk untuk membuka Maps.
+ * Kartu kanan atas: speedometer GPS (bisa disembunyikan di Pengaturan) dan panel navigasi. Panel menampilkan peta langsung (LiveMap) di posisi GPS, dan
+ * petunjuk belokan dari notifikasi navigasi Google Maps/Waze di atasnya. Ketuk untuk membuka aplikasi navigasinya.
  */
 final class DriveCard extends FrameLayout implements Loc.Listener, Nav.Listener {
     private final SpeedGauge gauge;
@@ -29,21 +29,31 @@ final class DriveCard extends FrameLayout implements Loc.Listener, Nav.Listener 
     /** Fix GPS bisa berhenti datang (terowongan, parkir basement): turunkan ke 0 tanpa menunggu fix baru. */
     private final Runnable stale = new Runnable() {
         @Override public void run() {
-            gauge.setSpeed(Loc.get(getContext()).speedKmh());
-            if (visible) h.postDelayed(this, 2000);
+            if (gauge != null) gauge.setSpeed(Loc.get(getContext()).speedKmh());
+            if (visible && gauge != null) h.postDelayed(this, 2000);
         }
     };
 
     DriveCard(Context c) {
         super(c);
         setBackground(Ui.card());
-        FrameLayout box = Ui.add(this, new FrameLayout(c), 10, 10, 164, 250);
-        box.setBackground(Ui.inner());
-        gauge = Ui.add(box, new SpeedGauge(c), 0, 0, 164, 250);
+        // Tanpa speedometer, peta mengambil seluruh lebar kartu.
+        float mapX = 184;
+        if (Ui.showSpeed(c)) {
+            FrameLayout box = Ui.add(this, new FrameLayout(c), 10, 10, 164, 250);
+            box.setBackground(Ui.inner());
+            gauge = Ui.add(box, new SpeedGauge(c), 0, 0, 164, 250);
+        } else {
+            gauge = null;
+            mapX = 10;
+        }
+        float mapW = 694 - mapX;
 
-        FrameLayout map = Ui.add(this, new FrameLayout(c), 184, 10, 510, 250);
+        FrameLayout map = Ui.add(this, new FrameLayout(c), mapX, 10, mapW, 250);
         Ui.clip(map, 20);
         map.addView(new MapDecor(c), new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        // Peta langsung menutupi peta hiasan begitu ada fix GPS.
+        map.addView(new LiveMap(c), new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         turnBox = Ui.add(map, new FrameLayout(c), 12, 12, 300, 104);
         turnBox.setBackground(Ui.over(18));
@@ -54,10 +64,10 @@ final class DriveCard extends FrameLayout implements Loc.Listener, Nav.Listener 
         turnSmall.setSingleLine(false);
         turnSmall.setMaxLines(2);
 
-        FrameLayout footer = Ui.add(map, new FrameLayout(c), 12, 196, 486, 42);
+        FrameLayout footer = Ui.add(map, new FrameLayout(c), 12, 196, mapW - 24, 42);
         footer.setBackground(Ui.over(21));
         Ui.add(footer, Ui.icon(c, R.drawable.ic_pin, Ui.TEXT), 14, 10, 22, 22);
-        footText = Ui.add(footer, Ui.text(c, 17, Ui.medium, Ui.TEXT), 44, 0, 430, 42);
+        footText = Ui.add(footer, Ui.text(c, 17, Ui.medium, Ui.TEXT), 44, 0, mapW - 80, 42);
         footText.setGravity(Gravity.CENTER_VERTICAL);
 
         Ui.pressable(map, 20);
@@ -99,7 +109,7 @@ final class DriveCard extends FrameLayout implements Loc.Listener, Nav.Listener 
     }
 
     @Override public void onLocation(Location l) {
-        gauge.setSpeed(Loc.get(getContext()).speedKmh());
+        if (gauge != null) gauge.setSpeed(Loc.get(getContext()).speedKmh());
     }
 
     @Override public void onNavChanged() {

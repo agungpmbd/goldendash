@@ -7,8 +7,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 PKG=com.goldendash.launcher
-VERSION_NAME=${VERSION_NAME:-0.1.0}
-VERSION_CODE=${VERSION_CODE:-1}
+VERSION_NAME=${VERSION_NAME:-0.2.0}
+VERSION_CODE=${VERSION_CODE:-2}
 MODE=${1:-}
 
 SDK=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}

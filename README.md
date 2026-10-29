@@ -24,7 +24,7 @@
   <img src="https://img.shields.io/badge/Android-7%2B-3DDC84?logo=android&logoColor=white" alt="Android 7+">
   <img src="https://img.shields.io/badge/layar-1280%C3%97720-lightgrey" alt="Layar 1280x720">
   <br>
-  <img src="https://img.shields.io/badge/APK-%C2%B180%20KB-D9B67A" alt="APK sekitar 80 KB">
+  <img src="https://img.shields.io/badge/APK-%C2%B190%20KB-D9B67A" alt="APK sekitar 80 KB">
   <img src="https://img.shields.io/badge/tanpa%20library-Java%20murni-D9B67A" alt="Java murni tanpa library">
   <img src="https://img.shields.io/badge/tema-Terang%20%7C%20Gelap%20%7C%20Otomatis-7076F0" alt="Tema Terang, Gelap, Otomatis">
 </p>
@@ -39,7 +39,7 @@ Launcher bawaan banyak headunit Android berat, kaku, dan tidak bisa diatur. Gold
 layar yang menampilkan semua yang dibutuhkan saat menyetir: jam, cuaca, kecepatan, petunjuk belokan, musik, volume,
 dan kecerahan. Semua bisa disentuh dengan jempol tanpa membuka aplikasi lain.
 
-Ditulis dengan Java murni tanpa library dan tanpa Gradle. APK-nya sekitar 80 KB. Latar digambar sekali saja, GPS
+Ditulis dengan Java murni tanpa library dan tanpa Gradle. APK-nya sekitar 90 KB. Latar digambar sekali saja, GPS
 hanya aktif saat home terlihat, dan progres lagu hanya diperbarui saat kartunya tampil, jadi CPU saat diam tetap rendah.
 
 ## Fitur
@@ -47,14 +47,19 @@ hanya aktif saat home terlihat, dan progres lagu hanya diperbarui saat kartunya 
 - **Home:** jam besar dan tanggal berbahasa Indonesia, serta cuaca dan nama kota dari lokasi GPS
   ([Open-Meteo](https://open-meteo.com), gratis dan tanpa API key).
 - **Speedometer:** kecepatan dari GPS dengan cincin 0–140 km/j. Turun ke 0 sendiri bila sinyal GPS hilang
-  (terowongan, basement).
-- **Navigasi:** jarak dan petunjuk belokan diambil dari notifikasi navigasi **Google Maps**, **Waze**, Sygic, atau
-  OsmAnd. Ketuk panelnya untuk kembali ke aplikasi navigasi. Peta di belakangnya hanya hiasan.
+  (terowongan, basement). Bisa disembunyikan (**⚙ Pengaturan › Speedometer**); petanya lalu melebar memenuhi kartu.
+- **Navigasi:** peta langsung [OpenStreetMap](https://www.openstreetmap.org) di posisi GPS, dengan penanda mobil yang
+  mengikuti arah gerak (versi gelap untuk tema Gelap). Jarak dan petunjuk belokan diambil dari notifikasi navigasi
+  **Google Maps**, **Waze**, Sygic, atau OsmAnd dan tampil di atas peta. Ketuk panelnya untuk kembali ke aplikasi
+  navigasi. Garis rute Google Maps tidak bisa ditampilkan: Android tidak mengizinkan launcher biasa menampilkan
+  layar aplikasi lain.
 - **Pintasan 3×2:** terisi otomatis (Maps, Spotify, Telepon, Radio, Bluetooth, Pengaturan). Ketuk ✏️ atau tekan lama
   sebuah ikon untuk menggantinya.
 - **Kartu pemutar:** sampul album, judul, artis, progres, dan tombol sebelumnya/putar/berikutnya untuk aplikasi
   musik apa pun (Spotify, YouTube Music, JOOX, radio, ...). Tombol ♡ muncul bila aplikasinya menyediakan.
-- **Slider Volume dan Kecerahan:** ikut berubah bila diatur dari tombol setir atau sistem.
+- **Slider Volume dan Kecerahan:** ikut berubah bila diatur dari knob, tombol setir, atau sistem. Di headunit NWD,
+  volume asli diatur MCU, jadi slider menaikkan/menurunkan volume selangkah demi selangkah seperti knob.
+- **Posisi menu:** bilah menu di kiri atau kanan layar (**⚙ Pengaturan › Posisi menu**).
 - **Semua Aplikasi:** pencarian, tab Semua/Navigasi/Media/Sistem, dan grid 6×2 yang bisa digeser per halaman.
   - Tekan lama sebuah ikon untuk menambahkannya ke pintasan, membuka info aplikasi, atau menyembunyikannya.
   - **Atur** untuk mengurutkan A–Z atau menurut yang paling sering dibuka, dan untuk menampilkan lagi aplikasi
@@ -114,7 +119,8 @@ diskalakan dari ukuran desain 1280×720, jadi layar landscape lain tetap propors
 | Perangkat | Layar | Android | Status |
 |---|---|---|---|
 | Emulator Android 10 | 1280×720 | 10 | ✅ diuji: semua layar, kedua tema, GPS, cuaca, slider |
-| NWD K2401 (Allwinner sun50iw10) | 1280×720 | 10 | ⚠️ target utama, belum diuji di perangkat asli |
+| Audioteq AQ-A9 (NWD K2401, Allwinner sun50iw10) | 1280×720 | 10 | ✅ target utama: home, pemutar, petunjuk belokan, kecerahan diuji; volume lewat MCU (0.2.0) belum diuji |
+| Peerless AI Box (Cello Audio) | layar mobil | – | ✅ dilaporkan berfungsi oleh pengguna |
 | Headunit Android lain (FYT, MTK, Rockchip, …) | 1280×720 | 7+ | ⚠️ seharusnya jalan; properti khusus NWD tidak berlaku |
 | Layar landscape lain | 800×480 ke atas | 7+ | ⚠️ diskalakan proporsional, belum diuji |
 
@@ -146,7 +152,8 @@ adb uninstall com.goldendash.launcher
 ## Privasi
 
 - **Tanpa akun, tanpa iklan, tanpa analitik.** Tidak ada server GoldenDash.
-- **Lokasi** dipakai di perangkat untuk speedometer. Untuk cuaca, koordinat (4 desimal) dikirim ke
+- **Lokasi** dipakai di perangkat untuk speedometer. Peta mengunduh tile 256 px dari server tile OpenStreetMap untuk area
+  di sekitar mobil (±15–30 KB per tile, disimpan 7 hari di cache). Untuk cuaca, koordinat (4 desimal) dikirim ke
   [Open-Meteo](https://open-meteo.com) paling sering tiap 30 menit, dan nama kota dicari lewat Geocoder bawaan Android.
 - **Akses notifikasi** hanya dipakai untuk membaca sesi media (judul, artis, sampul) dan notifikasi navigasi
   Google Maps, Waze, Sygic, dan OsmAnd. Notifikasi aplikasi lain tidak dibaca, dan tidak ada yang dikirim keluar.
@@ -186,7 +193,8 @@ src/com/goldendash/launcher/
 ├── Sidebar                  bilah kiri
 ├── HomeScreen               tata letak kartu home
 ├── ClockCard, WeatherIcon, Weather, Clock      jam, tanggal, cuaca
-├── DriveCard, SpeedGauge, MapDecor, Nav        speedometer dan navigasi
+├── DriveCard, SpeedGauge, Nav                  speedometer dan petunjuk belokan
+├── LiveMap, Tiles, MapDecor                    peta langsung OpenStreetMap (+ cache tile), peta hiasan saat belum ada GPS
 ├── ShortcutsCard, Shortcuts, AppPicker         pintasan
 ├── MediaCard, MiniPlayer, Controls, Media      pemutar
 ├── SliderCard               volume dan kecerahan
@@ -216,6 +224,7 @@ adalah milik pemiliknya masing-masing.
 - [KlikDash](https://github.com/ashafizullah/klikdash) (MIT): inspirasi pendekatan launcher ringan tanpa Gradle
   untuk headunit NWD, cara build, dan sertifikat root ISRG untuk Android 7.0.
 - [Material Icons](https://fonts.google.com/icons) oleh Google (Apache 2.0) untuk ikon antarmuka.
+- [OpenStreetMap](https://www.openstreetmap.org/copyright) (data © kontributor OpenStreetMap, ODbL) untuk peta.
 - [Open-Meteo](https://open-meteo.com) (CC BY 4.0) untuk data cuaca.
 
 ## Lisensi
