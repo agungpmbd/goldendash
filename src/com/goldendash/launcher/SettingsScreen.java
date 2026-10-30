@@ -3,7 +3,6 @@ package com.goldendash.launcher;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.provider.Settings;
 import android.view.Gravity;
@@ -49,8 +48,11 @@ final class SettingsScreen extends FrameLayout {
             speedBtns[i] = choice(speed, i, 2, SPEEDS[i], v -> act.changeSpeed(show));
         }
         launcherBtn = row(y += step, "Jadikan tampilan utama",
-                "Pakai GoldenDash sebagai Home. Di firmware NWD, jalankan juga ./build.sh install dari komputer.",
-                v -> openHomeSettings());
+                "Tetap tampil setiap headunit menyala. Di firmware NWD perlu USB debugging aktif (tanpa komputer).",
+                v -> {
+                    if (HomeSwitch.isDefault(act)) HomeSwitch.restore(act, this::refresh);
+                    else HomeSwitch.makeDefault(act, this::refresh);
+                });
         locBtn = row(y += step, "Lokasi (GPS)", "Untuk speedometer, peta, dan cuaca.", v -> act.askLocation());
         notifBtn = row(y += step, "Akses notifikasi",
                 "Untuk pemutar musik dan petunjuk belokan Maps/Waze di home. Notifikasi aplikasi lain tidak dibaca.",
@@ -123,24 +125,10 @@ final class SettingsScreen extends FrameLayout {
             speedBtns[i].setBackground(on ? Ui.accent(26) : Ui.field(26));
             speedBtns[i].setTextColor(on ? Ui.WHITE : Ui.TEXT2);
         }
-        state(launcherBtn, isDefaultHome(), "Aktif", "Atur");
+        state(launcherBtn, HomeSwitch.isDefault(act), "Aktif", "Jadikan utama");
         state(locBtn, Loc.allowed(act), "Diizinkan", "Izinkan");
         state(notifBtn, Media.allowed(act), "Diizinkan", "Buka");
         state(brightBtn, Settings.System.canWrite(act), "Diizinkan", "Izinkan");
-    }
-
-    private boolean isDefaultHome() {
-        Intent i = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
-        ResolveInfo ri = act.getPackageManager().resolveActivity(i, PackageManager.MATCH_DEFAULT_ONLY);
-        return ri != null && ri.activityInfo != null && act.getPackageName().equals(ri.activityInfo.packageName);
-    }
-
-    private void openHomeSettings() {
-        try {
-            act.startActivity(new Intent(Settings.ACTION_HOME_SETTINGS));
-        } catch (RuntimeException e) {
-            Ui.start(act, new Intent(Settings.ACTION_SETTINGS));
-        }
     }
 
     private String version() {

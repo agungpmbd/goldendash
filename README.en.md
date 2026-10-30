@@ -90,12 +90,21 @@ stays low. The interface is in Indonesian.
 4. Open **⚙ Pengaturan** (Settings) in GoldenDash and tap the button on each row:
    - **Akses notifikasi** (notification access): for the player card and turn hints.
    - **Ubah kecerahan layar** (change brightness): so the brightness slider applies system-wide.
-   - **Jadikan tampilan utama** (set as home): choose GoldenDash as the Home app.
+   - **Jadikan tampilan utama** (set as home): so GoldenDash shows every time the headunit starts (see the NWD note below).
 5. Run the [pre-drive checklist](#disclaimer) with the car parked.
 
-> **NWD firmware:** the default launcher is chosen by a system property that can only be changed over ADB. Without
-> ADB, the headunit may switch back to the stock launcher after you press Home or restart it. GoldenDash can still
-> be opened from the app list. To make it permanent, use the method below once.
+> **NWD firmware:** at startup the headunit picks the launcher from the system property
+> `persist.nwd.launcher.default`, not from Android's Home choice, so without this step GoldenDash goes back to the
+> stock launcher every time the car starts. The **Jadikan tampilan utama** button changes that property through the
+> headunit's own ADB, without a computer:
+> 1. Turn on **USB debugging**: Android Settings › About › tap **Build number** 7 times, then
+>    **Developer options › USB debugging**.
+> 2. Tap **Jadikan tampilan utama** in GoldenDash's ⚙ Pengaturan.
+> 3. If **"Allow USB debugging?"** appears, tick **Always allow**, then **OK**.
+>
+> Once is enough; the choice is permanent. Tap the same button (**Aktif**) to go back to the stock launcher. If a
+> message says port 5555 isn't open (common on Android 11 and later), run `adb tcpip 5555` once from a computer, or
+> use the method below.
 
 ### With ADB (recommended for NWD)
 
@@ -134,7 +143,8 @@ Without ADB, the only changes are standard Android permissions that you grant yo
 
 | Change | When | How to undo |
 |---|---|---|
-| NWD default launcher `persist.nwd.launcher.default=com.goldendash.launcher` | Only via `./build.sh install` | `adb shell setprop persist.nwd.launcher.default com.android.launcher` |
+| NWD default launcher `persist.nwd.launcher.default=com.goldendash.launcher` | The **Jadikan tampilan utama** button (through the headunit's own ADB) or `./build.sh install` | Tap the **Aktif** button on the same row, or `adb shell setprop persist.nwd.launcher.default com.android.launcher` |
+| GoldenDash's ADB key ("Always allow") | When you allow "Allow USB debugging?" | Developer options › Revoke USB debugging authorizations |
 | HOME app preference | `./build.sh install`, or when you pick it in Settings | Android Settings › Apps › Default apps › Home app |
 | "Modify system settings" permission (brightness) | `./build.sh install`, or when you allow it | Android Settings › Apps › GoldenDash › Modify system settings |
 | Notification access | `./build.sh install`, or when you allow it | Android Settings › Notification access › GoldenDash |
@@ -199,7 +209,8 @@ belong to their owners.
 ## Thanks
 
 - [KlikDash](https://github.com/ashafizullah/klikdash) (MIT): inspiration for the lightweight, Gradle-free launcher
-  approach for NWD headunits, the build script, and the ISRG root certificates for Android 7.0.
+  approach for NWD headunits, the build script, the ISRG root certificates for Android 7.0, and the local ADB client
+  behind the Jadikan tampilan utama button.
 - [Material Icons](https://fonts.google.com/icons) by Google (Apache 2.0) for the interface icons.
 - [OpenStreetMap](https://www.openstreetmap.org/copyright) (data © OpenStreetMap contributors, ODbL) for the map.
 - [Open-Meteo](https://open-meteo.com) (CC BY 4.0) for weather data.

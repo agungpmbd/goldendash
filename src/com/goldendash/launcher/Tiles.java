@@ -42,7 +42,7 @@ final class Tiles {
 
     private static final long MAX_AGE = 7L * 24 * 3600_000L, RETRY = 30_000L, DISK_MAX = 40L * 1024 * 1024;
     private static final int QUEUE_MAX = 24;
-    private static final String AGENT = "GoldenDash/0.2.1 (+https://github.com/agungpmbd/goldendash)";
+    private static final String AGENT = "GoldenDash/0.3 (+https://github.com/agungpmbd/goldendash)";
 
     private static Tiles instance;
 
