@@ -34,6 +34,7 @@ final class Media implements MediaSessionManager.OnActiveSessionsChangedListener
     private final List<Listener> listeners = new ArrayList<>();
     private MediaController cur;
     private boolean watching;
+    private String last;
 
     private final MediaController.Callback cb = new MediaController.Callback() {
         @Override public void onPlaybackStateChanged(PlaybackState state) {
@@ -131,7 +132,38 @@ final class Media implements MediaSessionManager.OnActiveSessionsChangedListener
     }
 
     private void changed() {
+        if (isPlaying(cur)) remember(cur.getPackageName());
         for (Listener l : new ArrayList<>(listeners)) l.onMediaChanged();
+    }
+
+    /** Simpan aplikasi yang terakhir memutar, asal bisa dibuka dari launcher (bukan layanan Bluetooth dsb.). */
+    private void remember(String pkg) {
+        if (pkg == null || pkg.equals(lastPkg(ctx)) || Apps.get(ctx).find(pkg) == null) return;
+        last = pkg;
+        ctx.getSharedPreferences("media", Context.MODE_PRIVATE).edit().putString("last", pkg).apply();
+    }
+
+    private static String lastPkg(Context c) {
+        Media m = get(c);
+        if (m.last == null) m.last = c.getSharedPreferences("media", Context.MODE_PRIVATE).getString("last", "");
+        return m.last;
+    }
+
+    /**
+     * Pemutar untuk tombol ▶, kartu pemutar, dan tombol Musik saat tidak ada sesi: aplikasi yang terakhir memutar
+     * musik, lalu pemutar populer, lalu aplikasi berlabel "musik" (pemutar bawaan headunit).
+     */
+    static Apps.App player(Context c) {
+        Apps a = Apps.get(c);
+        Apps.App p = a.find(lastPkg(c));
+        if (p == null) p = a.find(Sidebar.MUSIC);
+        if (p == null) p = a.findLabel("musik", "music");
+        return p;
+    }
+
+    static boolean openPlayer(Context c) {
+        Apps.App p = player(c);
+        return p != null && Apps.get(c).launch(c, p);
     }
 
     boolean has() {

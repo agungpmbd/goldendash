@@ -57,6 +57,7 @@ hanya aktif saat home terlihat, dan progres lagu hanya diperbarui saat kartunya 
   sebuah ikon untuk menggantinya.
 - **Kartu pemutar:** sampul album, judul, artis, progres, dan tombol sebelumnya/putar/berikutnya untuk aplikasi
   musik apa pun (Spotify, YouTube Music, JOOX, radio, ...). Tombol ♡ muncul bila aplikasinya menyediakan.
+  Saat tidak ada yang diputar, tombol ▶ dan tombol **Musik** di menu membuka aplikasi yang terakhir memutar musik.
 - **Slider Volume dan Kecerahan:** ikut berubah bila diatur dari knob, tombol setir, atau sistem. Di headunit NWD,
   volume asli diatur MCU, jadi slider menaikkan/menurunkan volume selangkah demi selangkah seperti knob.
 - **Posisi menu:** bilah menu di kiri atau kanan layar (**⚙ Pengaturan › Posisi menu**).

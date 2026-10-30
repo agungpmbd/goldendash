@@ -26,6 +26,8 @@ final class MediaCard extends FrameLayout implements Media.Listener {
     private final Bar bar;
     private final Controls controls;
     private final Handler h = new Handler(Looper.getMainLooper());
+    /** Ikon dan nama pemutar ikut diperbarui saat aplikasi dipasang atau dihapus. */
+    private final Apps.Listener appsListener = this::show;
     private boolean visible;
 
     private final Runnable tick = new Runnable() {
@@ -69,13 +71,13 @@ final class MediaCard extends FrameLayout implements Media.Listener {
         Media m = Media.get(c);
         Apps.App a = m.has() ? Apps.get(c).find(m.pkg()) : null;
         if (a != null) Apps.get(c).launch(c, a);
-        else Apps.get(c).launchAny(c, Sidebar.MUSIC);
+        else Media.openPlayer(c);
     }
 
     private void show() {
         Context c = getContext();
         Media m = Media.get(c);
-        Apps.App app = m.has() ? Apps.get(c).find(m.pkg()) : Apps.get(c).find(Sidebar.MUSIC);
+        Apps.App app = m.has() ? Apps.get(c).find(m.pkg()) : Media.player(c);
         if (app != null && app.icon != null) {
             appIcon.setImageTintList(null);
             appIcon.setBackground(null);
@@ -168,11 +170,13 @@ final class MediaCard extends FrameLayout implements Media.Listener {
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         Media.get(getContext()).add(this);
+        Apps.get(getContext()).add(appsListener);
         show();
     }
 
     @Override protected void onDetachedFromWindow() {
         Media.get(getContext()).remove(this);
+        Apps.get(getContext()).remove(appsListener);
         h.removeCallbacks(tick);
         super.onDetachedFromWindow();
     }

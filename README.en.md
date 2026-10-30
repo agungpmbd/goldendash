@@ -57,6 +57,7 @@ stays low. The interface is in Indonesian.
   an icon to change it.
 - **Player card:** album art, title, artist, progress and previous/play/next for any music app (Spotify, YouTube
   Music, JOOX, radio, ...). A ♡ button appears when the app provides one.
+  When nothing is playing, ▶ and the **Musik** menu button open the app that last played music.
 - **Volume and Brightness sliders:** they follow changes from the knob, steering-wheel buttons or the system. On NWD
   headunits the real volume is set by the MCU, so the slider steps the volume up/down like the knob does.
 - **Menu position:** the menu bar on the left or right of the screen (**⚙ Pengaturan › Posisi menu**).

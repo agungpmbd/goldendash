@@ -31,7 +31,7 @@ final class MiniPlayer extends FrameLayout implements Media.Listener {
             Media m = Media.get(c);
             Apps.App a = m.has() ? Apps.get(c).find(m.pkg()) : null;
             if (a != null) Apps.get(c).launch(c, a);
-            else Apps.get(c).launchAny(c, Sidebar.MUSIC);
+            else Media.openPlayer(c);
         });
         show();
     }

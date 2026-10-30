@@ -41,6 +41,8 @@ final class Sidebar extends FrameLayout {
         }
     };
     private final Apps.Listener appsListener = this::loadApps;
+    /** Tombol Musik mengikuti aplikasi yang terakhir memutar musik. */
+    private final Media.Listener mediaListener = this::loadApps;
 
     Sidebar(Context c, final Nav nav, boolean right) {
         super(c);
@@ -62,7 +64,10 @@ final class Sidebar extends FrameLayout {
         maps = item(c, 222, R.drawable.ic_pin, "Maps");
         maps.setOnClickListener(v -> launch(MAPS));
         music = item(c, 332, R.drawable.ic_music, "Musik");
-        music.setOnClickListener(v -> launch(MUSIC));
+        music.setOnClickListener(v -> {
+            if (!Media.openPlayer(getContext()))
+                Toast.makeText(getContext(), "Aplikasi pemutar musik belum terpasang", Toast.LENGTH_SHORT).show();
+        });
         apps = item(c, 442, R.drawable.ic_grid, "Semua\nAplikasi");
         apps.setOnClickListener(v -> nav.go(APPS));
 
@@ -96,7 +101,7 @@ final class Sidebar extends FrameLayout {
         Apps a = Apps.get(getContext());
         Apps.App m = a.find(MAPS);
         if (m != null) maps.app(m.icon, "Maps");
-        Apps.App p = a.find(MUSIC);
+        Apps.App p = Media.player(getContext());
         if (p != null) music.app(p.icon, p.label);
     }
 
@@ -124,6 +129,7 @@ final class Sidebar extends FrameLayout {
         f.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         getContext().registerReceiver(rx, f);
         Apps.get(getContext()).add(appsListener);
+        Media.get(getContext()).add(mediaListener);
         refresh();
         loadApps();
     }
@@ -131,6 +137,7 @@ final class Sidebar extends FrameLayout {
     @Override protected void onDetachedFromWindow() {
         getContext().unregisterReceiver(rx);
         Apps.get(getContext()).remove(appsListener);
+        Media.get(getContext()).remove(mediaListener);
         super.onDetachedFromWindow();
     }
 

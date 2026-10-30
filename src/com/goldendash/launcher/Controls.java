@@ -32,7 +32,7 @@ final class Controls extends FrameLayout {
             Media m = Media.get(c);
             if (m.has()) {
                 m.playPause();
-            } else if (!Apps.get(c).launchAny(c, Sidebar.MUSIC)) {
+            } else if (!Media.openPlayer(c)) {
                 Toast.makeText(c, "Putar musik dari aplikasi pemutar dulu", Toast.LENGTH_SHORT).show();
             }
         });
